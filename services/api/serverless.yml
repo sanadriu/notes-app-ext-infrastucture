@@ -1,0 +1,52 @@
+service: notes-app-ext-api
+
+custom:
+  stage: ${opt:stage, self:provider.stage}
+
+provider:
+  name: aws
+  stage: dev
+  region: eu-north-1
+
+resources:
+  Resources:
+    RestApi:
+      Type: AWS::ApiGateway::RestApi
+      Properties:
+        Name: ${self:custom.stage}-ExtRestApi
+        EndpointConfiguration:
+          Types:
+            - EDGE
+
+    GatewayResponse4XX:
+      Type: AWS::ApiGateway::GatewayResponse
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseType: DEFAULT_5XX
+        RestApiId:
+          Ref: RestApi
+
+    GatewayResponse5XX:
+      Type: AWS::ApiGateway::GatewayResponse
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseType: DEFAULT_5XX
+        RestApiId:
+          Ref: RestApi
+
+  Outputs:
+    RestApiId:
+      Value:
+        Ref: RestApi
+      Export:
+        Name: ${self:custom.stage}-ExtRestApiId
+    
+    RestApiRootResourceId:
+      Value:
+        Fn::GetAtt: [RestApi, RootResourceId]
+      Export:
+        Name: ${self:custom.stage}-ExtRestApiRootResourceId
